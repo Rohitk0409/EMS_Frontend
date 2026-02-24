@@ -1,14 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { memo, useState } from "react";
-
-/**
- * AddEmployee Page
- * - Responsive design
- * - Accessible form
- * - Clean layout
- * - Ready for API integration
- */
+import toast from "react-hot-toast";
+import api from "../Hooks/api";
 
 function AddEmployee() {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -17,6 +14,7 @@ function AddEmployee() {
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle input change
   const handleChange = (e) => {
@@ -26,9 +24,15 @@ function AddEmployee() {
       ...prev,
       [name]: value,
     }));
+
+    // Remove field error on change
+    setErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
   };
 
-  // Simple validation
+  // Validation
   const validate = () => {
     const newErrors = {};
 
@@ -55,20 +59,25 @@ function AddEmployee() {
     return newErrors;
   };
 
-  // Handle submit
-  const handleSubmit = (e) => {
+  // Submit handler
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const validationErrors = validate();
     setErrors(validationErrors);
 
-    if (Object.keys(validationErrors).length === 0) {
-      console.log("Employee Data:", formData);
+    // Stop if validation fails
+    if (Object.keys(validationErrors).length > 0) {
+      toast.error("Please fix form errors");
+      return;
+    }
 
-      // 🔥 Later connect with backend here
-      // axios.post("/api/employees", formData)
+    try {
+      setIsLoading(true);
 
-      alert("Employee Added Successfully");
+      const res = await api.post("/v1/user/create", formData);
+      await queryClient.invalidateQueries(["users"]);
+      toast.success(res?.data?.message || "Employee added successfully!");
 
       // Reset form
       setFormData({
@@ -77,13 +86,16 @@ function AddEmployee() {
         mobile: "",
         role: "",
       });
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to add employee");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 ">
+    <div className="min-h-screen bg-gray-100 p-4">
       <div className="w-full mx-auto bg-white shadow-md rounded-xl p-6 sm:p-8">
-        {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
             Add New Employee
@@ -93,27 +105,22 @@ function AddEmployee() {
           </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} noValidate>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Name */}
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Full Name
               </label>
               <input
                 type="text"
-                id="name"
                 name="name"
                 value={formData.name}
+                placeholder="Enter Full Name"
                 onChange={handleChange}
                 className={`mt-1 w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${
                   errors.name ? "border-red-500" : "border-gray-300"
                 }`}
-                aria-invalid={errors.name ? "true" : "false"}
               />
               {errors.name && (
                 <p className="text-sm text-red-500 mt-1">{errors.name}</p>
@@ -122,16 +129,13 @@ function AddEmployee() {
 
             {/* Email */}
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Email Address
               </label>
               <input
                 type="email"
-                id="email"
                 name="email"
+                placeholder="Enter Email Id"
                 value={formData.email}
                 onChange={handleChange}
                 className={`mt-1 w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${
@@ -145,16 +149,13 @@ function AddEmployee() {
 
             {/* Mobile */}
             <div>
-              <label
-                htmlFor="mobile"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Mobile Number
               </label>
               <input
                 type="tel"
-                id="mobile"
                 name="mobile"
+                placeholder="Enter Mobile Number"
                 value={formData.mobile}
                 onChange={handleChange}
                 className={`mt-1 w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${
@@ -168,14 +169,10 @@ function AddEmployee() {
 
             {/* Role */}
             <div>
-              <label
-                htmlFor="role"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label className="block text-sm font-medium text-gray-700">
                 Role
               </label>
               <select
-                id="role"
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
@@ -198,9 +195,21 @@ function AddEmployee() {
           <div className="mt-8 text-right">
             <button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2 rounded-lg transition"
+              disabled={isLoading}
+              className={`px-6 py-2 rounded-lg font-medium text-white transition ${
+                isLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
             >
-              Add Employee
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  Adding...
+                </span>
+              ) : (
+                "Add Employee"
+              )}
             </button>
           </div>
         </form>

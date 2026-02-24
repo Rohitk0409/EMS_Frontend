@@ -7,7 +7,7 @@ function ProtectedRoute({ children }) {
   const location = useLocation();
 
   // If no accessToken → user is not authenticated
-  if (!auth?.accessToken) {
+  if (!auth) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

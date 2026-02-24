@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Context/Auth/useAuth";
 import AboutPage from "./AboutPage";
+import api from "../Hooks/api";
 
 function LoginPage() {
   const { login, auth } = useAuth(); // ✅ Access login function

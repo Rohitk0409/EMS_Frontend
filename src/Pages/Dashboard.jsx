@@ -1,42 +1,61 @@
-import { Activity, UserCheck, UserPlus, Users } from "lucide-react";
-import { memo } from "react";
-
-/**
- * Dashboard Page
- * - Fully responsive
- * - Accessible
- * - Clean grid layout
- * - Production ready
- */
-
-const statsData = [
-  {
-    title: "Total Employees",
-    value: 120,
-    icon: Users,
-    color: "bg-indigo-600",
-  },
-  {
-    title: "Active Employees",
-    value: 95,
-    icon: UserCheck,
-    color: "bg-green-600",
-  },
-  {
-    title: "New This Month",
-    value: 12,
-    icon: UserPlus,
-    color: "bg-yellow-500",
-  },
-  {
-    title: "Pending Approvals",
-    value: 5,
-    icon: Activity,
-    color: "bg-red-500",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { Activity, UserCheck, Users } from "lucide-react";
+import { memo, useMemo } from "react";
+import { useAuth } from "../Context/Auth/useAuth";
+import api from "../Hooks/api";
+import { fetchTenantUsers } from "../Hooks/usePrefetch";
+import RecentActivitity from "./RecentActivitity";
 
 function Dashboard() {
+  const { auth } = useAuth();
+  const companyId = auth?.companyId;
+
+  const { data: employeesData = [], isLoading } = useQuery({
+    queryKey: ["users", companyId],
+    queryFn: () => fetchTenantUsers(api),
+    enabled: !!companyId,
+  });
+
+  const cardVal = useMemo(() => {
+    if (!employeesData?.length) {
+      return { total: 0, active: 0, inactive: 0 };
+    }
+
+    return employeesData.reduce(
+      (acc, emp) => {
+        acc.total += 1;
+
+        if (emp?.status?.toLowerCase() === "active") acc.active += 1;
+        if (emp?.status?.toLowerCase() === "inactive") acc.inactive += 1;
+
+        return acc;
+      },
+      { total: 0, active: 0, inactive: 0 },
+    );
+  }, [employeesData]);
+
+  const statsData = [
+    {
+      title: " Employees",
+      value: cardVal?.total || 0,
+      icon: Users,
+      color: "bg-indigo-600",
+    },
+    {
+      title: "Active ",
+      value: cardVal?.active || 0,
+      icon: UserCheck,
+      color: "bg-green-600",
+    },
+
+    {
+      title: "Inactive ",
+      value: cardVal?.inactive || 0,
+      icon: Activity,
+      color: "bg-red-500",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-100 p-2">
       {/* ================= HEADER SECTION ================= */}
@@ -52,7 +71,7 @@ function Dashboard() {
       {/* ================= CARD SECTION ================= */}
       <section
         aria-label="Dashboard Statistics"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6"
       >
         {statsData.map((item, index) => {
           const Icon = item.icon;
@@ -60,20 +79,19 @@ function Dashboard() {
           return (
             <div
               key={index}
-              className="bg-white rounded-xl shadow-sm p-6 flex items-center justify-between hover:shadow-md transition"
+              className="bg-white rounded-xl shadow-sm px-4  py-3 flex items-center justify-between hover:shadow-md transition gap-2"
             >
+              <div
+                className={`${item.color} p-2 rounded-lg text-white`}
+                aria-hidden="true"
+              >
+                <Icon size={20} />
+              </div>
               <div>
                 <p className="text-sm text-gray-500">{item.title}</p>
                 <h2 className="text-2xl font-bold text-gray-800 mt-1">
                   {item.value}
                 </h2>
-              </div>
-
-              <div
-                className={`${item.color} p-3 rounded-lg text-white`}
-                aria-hidden="true"
-              >
-                <Icon size={22} />
               </div>
             </div>
           );
@@ -81,35 +99,14 @@ function Dashboard() {
       </section>
 
       {/* ================= RECENT ACTIVITY ================= */}
-      <section
-        aria-label="Recent Activity"
-        className="mt-10 bg-white rounded-xl shadow-sm p-6"
-      >
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Recent Activity
-        </h2>
 
-        <ul className="space-y-4">
-          <li className="flex justify-between items-center border-b pb-3">
-            <span className="text-gray-600">
-              New employee <strong>Rahul Sharma</strong> added.
-            </span>
-            <span className="text-sm text-gray-400">2 hours ago</span>
-          </li>
-
-          <li className="flex justify-between items-center border-b pb-3">
-            <span className="text-gray-600">
-              Salary updated for <strong>Anita Verma</strong>.
-            </span>
-            <span className="text-sm text-gray-400">5 hours ago</span>
-          </li>
-
-          <li className="flex justify-between items-center">
-            <span className="text-gray-600">3 employees marked as active.</span>
-            <span className="text-sm text-gray-400">Yesterday</span>
-          </li>
-        </ul>
-      </section>
+      <RecentActivitity
+        activities={[
+          { text: "New employee Rahul Sharma added.", time: "2 hours ago" },
+          { text: "Salary updated for Anita Verma.", time: "5 hours ago" },
+          { text: "3 employees marked as active.", time: "Yesterday" },
+        ]}
+      />
     </div>
   );
 }

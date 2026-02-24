@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import api from "../../Hooks/api";
 import { AuthContext } from "./AuthContext";
-
 function AuthProvider({ children }) {
   const [auth, setAuth] = useState(() => {
     const storedAuth = localStorage.getItem("auth");
-    return storedAuth
-      ? JSON.parse(storedAuth)
-      : { user: null, accessToken: null };
+    return storedAuth ? JSON.parse(storedAuth) : null;
   });
 
   // Save auth to localStorage whenever it changes
@@ -14,17 +12,30 @@ function AuthProvider({ children }) {
     localStorage.setItem("auth", JSON.stringify(auth));
   }, [auth]);
 
-  const login = useCallback((email, password) => {
-    setAuth({
-      user: {
-        id: "1",
-        name: "Rohit",
+  const signUp = useCallback(async (name, email, password, mobile) => {
+    try {
+      const res = await api.post("/v1/register", {
         email,
-        role: "admin",
-        tenantId: "tenant_001",
-      },
-      accessToken: "mock_access_token_123",
-    });
+        password,
+        name,
+        mobile,
+      });
+      setAuth(res?.data);
+    } catch (e) {
+      console.log(e);
+    } finally {
+    }
+  }, []);
+
+  // login
+  const login = useCallback(async (email, password) => {
+    try {
+      const res = await api.post("/v1/login", { email, password });
+      setAuth(res?.data);
+    } catch (e) {
+      console.log(e);
+    } finally {
+    }
   }, []);
 
   const logout = useCallback(() => {
@@ -35,10 +46,11 @@ function AuthProvider({ children }) {
   const contextValue = useMemo(
     () => ({
       auth,
+      signUp,
       login,
       logout,
     }),
-    [auth, login, logout],
+    [auth, login, logout, signUp],
   );
 
   return (
