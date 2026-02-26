@@ -5,18 +5,22 @@ import { useAuth } from "../Context/Auth/useAuth";
 import api from "../Hooks/api";
 import { fetchTenantUsers } from "../Hooks/usePrefetch";
 import DeleteUserModal from "./Modals/DeleteUserModals";
+import EditUserModal from "./Modals/EditUserModal";
 // Fetch function
 
 function AllEmployees() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
+  // delete state
   const [deleteUser, setDeleteUser] = useState(null);
+  // edit state
+  const [editUser, setEditUser] = useState(null);
 
   const { auth } = useAuth();
 
   const companyId = auth?.companyId;
 
-  // 🔥 This will use prefetched data automatically
+  // This will use prefetched data automatically
   const { data: employeesData = [], isLoading } = useQuery({
     queryKey: ["users", companyId],
     queryFn: () => fetchTenantUsers(api),
@@ -66,6 +70,15 @@ function AllEmployees() {
             setDeleteUser(null);
           }}
           user={deleteUser}
+        />
+      )}
+      {editUser && (
+        <EditUserModal
+          isOpen={true}
+          onClose={() => {
+            setEditUser(null);
+          }}
+          user={editUser}
         />
       )}
       <div className="min-h-screen bg-gray-100 p-2">
@@ -157,7 +170,15 @@ function AllEmployees() {
                         <div className="flex items-center gap-3">
                           {/* Edit Button */}
                           <button
-                            onClick={() => handleEdit(emp)}
+                            onClick={() => {
+                              setEditUser({
+                                id: emp?._id,
+                                name: emp?.name || "User",
+                                email: emp?.email,
+                                mobile: emp?.mobile,
+                                status: emp?.status,
+                              });
+                            }}
                             className="flex items-center justify-center h-8 w-8 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 cursor-pointer"
                             aria-label={`Edit ${emp.name}`}
                           >

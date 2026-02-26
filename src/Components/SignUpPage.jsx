@@ -1,14 +1,13 @@
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/Auth/useAuth";
 import AboutPage from "./AboutPage";
 
-/**
- * Signup Page Layout
- * Left → Form
- * Right → About Section
- */
-
 function SignUpPage() {
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -16,95 +15,171 @@ function SignUpPage() {
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    if (error) setError(""); // Clear error when user starts typing
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Signup Data:", formData);
+
+    try {
+      setIsSigningUp(true);
+      await signUp(
+        formData.name.trim(),
+        formData.email.trim(),
+        formData.password,
+      );
+
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setError(
+        err?.message ||
+          "Failed to create account. Please try again or use different email.",
+      );
+    } finally {
+      setIsSigningUp(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      {/* RIGHT SIDE - ABOUT (Hidden on mobile) */}
-      <div className="hidden md:flex md:w-1/2 bg-indigo-900">
-        <AboutPage />
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left - Branding / About (hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-indigo-900 via-indigo-800 to-purple-900 text-white">
+        <div className="w-full h-full flex items-center justify-center p-8 xl:p-16">
+          <AboutPage />
+        </div>
       </div>
-      {/* LEFT SIDE - FORM */}
-      <div className="flex w-full md:w-1/2 items-center justify-center bg-gray-100 p-6">
-        <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            Create Your Account
-          </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
+      {/* Right - Signup Form */}
+      <div className="flex-1 flex items-center justify-center bg-gray-50 px-5 py-12 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              Get started with EMP Pro
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Create your account and start managing efficiently
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div className="space-y-5">
+              {/* Full Name */}
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Full name
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition duration-150"
+                  placeholder="John Doe"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition duration-150"
+                  placeholder="name@example.com"
+                />
+              </div>
+
+              {/* Password */}
+              <div className="relative">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-3 pr-11 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition duration-150"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Email Address
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-
-            {/* Password */}
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700">
-                Set Password
-              </label>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 pr-10 focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 text-gray-500"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-medium transition"
+              disabled={isSigningUp}
+              className="group relative flex w-full justify-center rounded-lg bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Create Account
+              {isSigningUp ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Creating account...
+                </span>
+              ) : (
+                "Create account"
+              )}
             </button>
+
+            {/* Login Link */}
+            <div className="text-center text-sm">
+              <span className="text-gray-600">Already have an account? </span>
+              <Link
+                to="/login"
+                className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-150"
+              >
+                Sign in
+              </Link>
+            </div>
           </form>
+
+          {/* Footer */}
+          <p className="mt-10 text-center text-xs text-gray-500">
+            © {new Date().getFullYear()} EMP Pro. All rights reserved.
+          </p>
         </div>
       </div>
     </div>

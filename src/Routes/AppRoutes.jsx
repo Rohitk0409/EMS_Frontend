@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import ForgotPasswordPage from "../Components/ForgotPasswordPage";
 import MainLayout from "../Components/Layout/MainLayout";
 import LoginPage from "../Components/LoginPage";
 import SignUpPage from "../Components/SignUpPage";
@@ -7,7 +8,6 @@ import AddEmployee from "../Pages/AddEmployee";
 import AllEmployees from "../Pages/AllEmployees";
 import Dashboard from "../Pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
-
 /**
  * Central Routing Configuration
  */
@@ -19,6 +19,8 @@ function AppRoutes() {
       {/* Public Route */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signUp" element={<SignUpPage />} />
+
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       {/* Layout Wrapper */}
       {/* Protected Routes */}
       <Route
@@ -36,7 +38,6 @@ function AppRoutes() {
         <Route path="add-employee" element={<AddEmployee />} />
         <Route path="employees" element={<AllEmployees />} />
       </Route>
-
       {/* 404 Page */}
       <Route
         path="*"

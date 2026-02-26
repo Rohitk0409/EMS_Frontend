@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import api from "../../Hooks/api";
 import { AuthContext } from "./AuthContext";
 function AuthProvider({ children }) {
@@ -21,8 +22,14 @@ function AuthProvider({ children }) {
         mobile,
       });
       setAuth(res?.data);
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Something went wrong. Please try again.";
+
+      toast.error(backendMessage);
     } finally {
     }
   }, []);
@@ -33,13 +40,14 @@ function AuthProvider({ children }) {
       const res = await api.post("/v1/login", { email, password });
       setAuth(res?.data);
     } catch (e) {
+      toast.error("Email or Password is incorrect!");
       console.log(e);
     } finally {
     }
   }, []);
 
   const logout = useCallback(() => {
-    setAuth({ user: null, accessToken: null });
+    setAuth(null);
     localStorage.removeItem("auth");
   }, []);
 
