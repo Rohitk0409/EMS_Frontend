@@ -13,6 +13,18 @@ function AuthProvider({ children }) {
     localStorage.setItem("auth", JSON.stringify(auth));
   }, [auth]);
 
+  const authData = async () => {
+    try {
+      const res = await api.get("/v1/me");
+
+      setAuth((prev) => ({
+        ...prev,
+        user: res?.data?.user,
+      }));
+    } catch (e) {
+      console.error("Auth fetch failed:", e);
+    }
+  };
   const signUp = useCallback(async (name, email, password, mobile) => {
     try {
       const res = await api.post("/v1/register", {
@@ -39,6 +51,7 @@ function AuthProvider({ children }) {
     try {
       const res = await api.post("/v1/login", { email, password });
       setAuth(res?.data);
+      await authData();
     } catch (e) {
       toast.error("Email or Password is incorrect!");
       console.log(e);

@@ -26,7 +26,7 @@ function Sidebar({
 }) {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { auth, logout } = useAuth();
-
+ 
   const user = auth?.user;
   const firstLetter = user?.name?.charAt(0)?.toUpperCase() || "U";
 
