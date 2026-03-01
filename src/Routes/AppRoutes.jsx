@@ -22,7 +22,7 @@ function AppRoutes() {
       <Route path="/signUp" element={<SignUpPage />} />
 
       <Route path="/forgot-password" element={<SendEmail />} />
-      <Route path="/set-password" element={<SetPassword />} />
+      <Route path="/reset-password/:token" element={<SetPassword />} />
       {/* Layout Wrapper */}
       {/* Protected Routes */}
       <Route
