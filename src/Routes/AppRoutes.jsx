@@ -1,7 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import ForgotPasswordPage from "../Components/ForgotPasswordPage";
 import MainLayout from "../Components/Layout/MainLayout";
 import LoginPage from "../Components/LoginPage";
+import SendEmail from "../Components/PasswoardAuthentication/SendEmail";
+import SetPassword from "../Components/PasswoardAuthentication/SetPassword";
 import SignUpPage from "../Components/SignUpPage";
 import { useAuth } from "../Context/Auth/useAuth";
 import AddEmployee from "../Pages/AddEmployee";
@@ -20,7 +21,8 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signUp" element={<SignUpPage />} />
 
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/forgot-password" element={<SendEmail />} />
+      <Route path="/set-password" element={<SetPassword />} />
       {/* Layout Wrapper */}
       {/* Protected Routes */}
       <Route
