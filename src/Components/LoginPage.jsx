@@ -56,7 +56,7 @@ function LoginPage() {
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
               Welcome back
             </h1>
-            <p className="mt-2 text-gray-600">Log in to your EMP Pro account</p>
+            <p className="mt-2 text-gray-600">Log in to your EMS Pro account</p>
           </div>
 
           {/* Error Message */}
@@ -153,7 +153,7 @@ function LoginPage() {
 
           {/* Footer */}
           <p className="mt-10 text-center text-xs text-gray-500">
-            © {new Date().getFullYear()} EMP Pro. All rights reserved.
+            © {new Date().getFullYear()} EMS Pro. All rights reserved.
           </p>
         </div>
       </div>

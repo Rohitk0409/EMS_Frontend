@@ -64,7 +64,7 @@ function SignUpPage() {
           {/* Header */}
           <div className="text-center">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Get started with EMP Pro
+              Get started with EMS Pro
             </h1>
             <p className="mt-2 text-gray-600">
               Create your account and start managing efficiently
@@ -178,7 +178,7 @@ function SignUpPage() {
 
           {/* Footer */}
           <p className="mt-10 text-center text-xs text-gray-500">
-            © {new Date().getFullYear()} EMP Pro. All rights reserved.
+            © {new Date().getFullYear()} EMS Pro. All rights reserved.
           </p>
         </div>
       </div>
