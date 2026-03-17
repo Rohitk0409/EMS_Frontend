@@ -6,6 +6,8 @@ import api from "../Hooks/api";
 
 function AddEmployee() {
   const queryClient = useQueryClient();
+
+  // Form Data
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -13,10 +15,20 @@ function AddEmployee() {
     role: "",
   });
 
+  // Validation Errors
   const [errors, setErrors] = useState({});
+
+  // Loading State
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handle input change
+  // Roles List
+  const [roles, setRoles] = useState(["Admin", "HR", "Employee"]);
+
+  // Custom Role States
+  const [isCustomRole, setIsCustomRole] = useState(false);
+  const [customRole, setCustomRole] = useState("");
+
+  // Handle Input Change
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -25,14 +37,13 @@ function AddEmployee() {
       [name]: value,
     }));
 
-    // Remove field error on change
     setErrors((prev) => ({
       ...prev,
       [name]: "",
     }));
   };
 
-  // Validation
+  // Validation Function
   const validate = () => {
     const newErrors = {};
 
@@ -59,14 +70,33 @@ function AddEmployee() {
     return newErrors;
   };
 
-  // Submit handler
+  // Handle Add Custom Role
+  const handleAddRole = () => {
+    if (!customRole.trim()) {
+      toast.error("Please enter role name");
+      return;
+    }
+
+    setRoles((prev) => [...prev, customRole]);
+
+    setFormData((prev) => ({
+      ...prev,
+      role: customRole,
+    }));
+
+    setCustomRole("");
+    setIsCustomRole(false);
+
+    toast.success("Role added successfully");
+  };
+
+  // Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const validationErrors = validate();
     setErrors(validationErrors);
 
-    // Stop if validation fails
     if (Object.keys(validationErrors).length > 0) {
       toast.error("Please fix form errors");
       return;
@@ -76,10 +106,12 @@ function AddEmployee() {
       setIsLoading(true);
 
       const res = await api.post("/v1/user/create", formData);
+
       await queryClient.invalidateQueries(["users"]);
+
       toast.success(res?.data?.message || "Employee added successfully!");
 
-      // Reset form
+      // Reset Form
       setFormData({
         name: "",
         email: "",
@@ -100,6 +132,7 @@ function AddEmployee() {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
             Add New Employee
           </h1>
+
           <p className="text-gray-500 mt-1">
             Fill the details below to add a new employee.
           </p>
@@ -112,16 +145,18 @@ function AddEmployee() {
               <label className="block text-sm font-medium text-gray-700">
                 Full Name
               </label>
+
               <input
                 type="text"
                 name="name"
-                value={formData.name}
                 placeholder="Enter Full Name"
+                value={formData.name}
                 onChange={handleChange}
                 className={`mt-1 w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${
                   errors.name ? "border-red-500" : "border-gray-300"
                 }`}
               />
+
               {errors.name && (
                 <p className="text-sm text-red-500 mt-1">{errors.name}</p>
               )}
@@ -132,6 +167,7 @@ function AddEmployee() {
               <label className="block text-sm font-medium text-gray-700">
                 Email Address
               </label>
+
               <input
                 type="email"
                 name="email"
@@ -142,6 +178,7 @@ function AddEmployee() {
                   errors.email ? "border-red-500" : "border-gray-300"
                 }`}
               />
+
               {errors.email && (
                 <p className="text-sm text-red-500 mt-1">{errors.email}</p>
               )}
@@ -152,6 +189,7 @@ function AddEmployee() {
               <label className="block text-sm font-medium text-gray-700">
                 Mobile Number
               </label>
+
               <input
                 type="tel"
                 name="mobile"
@@ -162,6 +200,7 @@ function AddEmployee() {
                   errors.mobile ? "border-red-500" : "border-gray-300"
                 }`}
               />
+
               {errors.mobile && (
                 <p className="text-sm text-red-500 mt-1">{errors.mobile}</p>
               )}
@@ -172,21 +211,59 @@ function AddEmployee() {
               <label className="block text-sm font-medium text-gray-700">
                 Role
               </label>
+
               <select
                 name="role"
                 value={formData.role}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value === "custom") {
+                    setIsCustomRole(true);
+                    setFormData((prev) => ({ ...prev, role: "" }));
+                  } else {
+                    setIsCustomRole(false);
+                    setFormData((prev) => ({ ...prev, role: value }));
+                  }
+                }}
                 className={`mt-1 w-full rounded-lg border px-3 py-2 focus:ring-2 focus:ring-indigo-500 outline-none ${
                   errors.role ? "border-red-500" : "border-gray-300"
                 }`}
               >
                 <option value="">Select Role</option>
-                <option value="Admin">Admin</option>
-                <option value="HR">HR</option>
-                <option value="Employee">Employee</option>
+
+                {roles.map((role, index) => (
+                  <option key={index} value={role}>
+                    {role}
+                  </option>
+                ))}
+
+                <option value="custom">+ Add New Role</option>
               </select>
+
               {errors.role && (
                 <p className="text-sm text-red-500 mt-1">{errors.role}</p>
+              )}
+
+              {/* Custom Role Input */}
+              {isCustomRole && (
+                <div className="flex gap-2 mt-3">
+                  <input
+                    type="text"
+                    placeholder="Enter new role"
+                    value={customRole}
+                    onChange={(e) => setCustomRole(e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleAddRole}
+                    className="bg-indigo-600 text-white px-4 rounded-lg hover:bg-indigo-700"
+                  >
+                    Add
+                  </button>
+                </div>
               )}
             </div>
           </div>
